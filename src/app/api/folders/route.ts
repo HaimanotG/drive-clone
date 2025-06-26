@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     const folderData = insertFolderSchema.parse({
       ...body,
-      userId: +userId,
+      userId,
     });
 
     const folder = await storage.createFolder({

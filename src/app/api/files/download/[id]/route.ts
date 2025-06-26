@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-
-import fs from "fs";
-import path from "path";
 import getServerSession from "@/lib/get-server-session";
 import { storage } from "@/lib/storage/storage";
 
@@ -22,23 +19,8 @@ export async function GET(
       return NextResponse.json({ message: "File not found" }, { status: 404 });
     }
 
-    const filePath = path.resolve(file.path);
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json(
-        { message: "File not found on disk" },
-        { status: 404 }
-      );
-    }
-
-    const fileBuffer = fs.readFileSync(filePath);
-
-    return new NextResponse(fileBuffer, {
-      headers: {
-        "Content-Type": "application/octet-stream",
-        "Content-Disposition": `attachment; filename="${file.originalName}"`,
-        "Content-Length": file.size.toString(),
-      },
-    });
+    // Redirect to Cloudinary URL for download
+    return NextResponse.redirect(file.path, 302);
   } catch (error) {
     console.error("Error downloading file:", error);
     return NextResponse.json(

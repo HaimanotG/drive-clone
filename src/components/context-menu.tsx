@@ -3,8 +3,8 @@ import { useEffect, useRef } from "react";
 import { useToast } from "../hooks/use-toast";
 import { Button } from "./ui/button";
 import { Edit2, Download, Share2, Star, Trash2 } from "lucide-react";
-import useContextMenu from "../hooks/use-context-menu";
 import { File, Folder } from "../shared/schema";
+import useContextMenu from "@/hooks/use-context-menu";
 
 export interface ContextMenuProps {
   x: number;

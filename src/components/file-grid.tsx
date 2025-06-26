@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { cn, formatFileSize } from "../lib/utils";
 import { File, Folder as FolderType } from "../shared/schema";
+import Image from "next/image";
 
 interface FileGridProps {
   folders: FolderType[];
@@ -27,6 +28,25 @@ interface FileGridProps {
   onUploadClick: () => void;
   onFilePreview?: (file: File) => void;
 }
+
+// Add this helper function to generate Cloudinary thumbnail URLs
+const getCloudinaryThumbnail = (
+  cloudinaryUrl: string,
+  width = 96,
+  height = 96
+) => {
+  // Extract public_id from Cloudinary URL
+  const urlParts = cloudinaryUrl.split("/");
+  const uploadIndex = urlParts.findIndex((part) => part === "upload");
+  if (uploadIndex === -1) return cloudinaryUrl;
+
+  const publicIdWithExtension = urlParts.slice(uploadIndex + 1).join("/");
+  const publicId = publicIdWithExtension.replace(/\.[^/.]+$/, ""); // Remove extension
+
+  // Build thumbnail URL with transformations
+  const baseUrl = urlParts.slice(0, uploadIndex + 1).join("/");
+  return `${baseUrl}/c_fill,w_${width},h_${height},q_auto,f_auto/${publicId}`;
+};
 
 export default function FileGrid({
   folders,
@@ -200,6 +220,9 @@ export default function FileGrid({
           {files.map((file) => {
             const FileIcon = getFileIcon(file.mimeType);
             const isImage = file.mimeType.startsWith("image/");
+            const thumbnailUrl = isImage
+              ? getCloudinaryThumbnail(file.path)
+              : null;
 
             return (
               <div
@@ -215,9 +238,26 @@ export default function FileGrid({
               >
                 {viewMode === "grid" ? (
                   <div className="flex flex-col items-center">
-                    {isImage ? (
-                      <div className="w-12 h-12 rounded-lg overflow-hidden mb-3 bg-gray-100 flex items-center justify-center">
-                        <FileIcon className="w-6 h-6 text-gray-600" />
+                    {isImage && thumbnailUrl ? (
+                      <div className="w-12 h-12 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                        <Image
+                          src={thumbnailUrl}
+                          alt={file.name}
+                          width={12}
+                          height={12}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback to icon if image fails to load
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = "none";
+                            target.nextElementSibling?.classList.remove(
+                              "hidden"
+                            );
+                          }}
+                        />
+                        <div className=" w-full h-full flex items-center justify-center">
+                          <FileIcon className="w-6 h-6 text-gray-600" />
+                        </div>
                       </div>
                     ) : (
                       <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-3">
@@ -234,9 +274,26 @@ export default function FileGrid({
                 ) : (
                   <>
                     <div className="flex-shrink-0">
-                      {isImage ? (
-                        <div className="w-8 h-8 rounded overflow-hidden bg-gray-100 flex items-center justify-center">
-                          <FileIcon className="w-4 h-4 text-gray-600" />
+                      {isImage && thumbnailUrl ? (
+                        <div className="w-8 h-8 rounded overflow-hidden bg-gray-100">
+                          <Image
+                            src={thumbnailUrl}
+                            alt={file.name}
+                            width={12}
+                            height={12}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // Fallback to icon if image fails to load
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = "none";
+                              target.nextElementSibling?.classList.remove(
+                                "hidden"
+                              );
+                            }}
+                          />
+                          <div className=" w-full h-full flex items-center justify-center">
+                            <FileIcon className="w-4 h-4 text-gray-600" />
+                          </div>
                         </div>
                       ) : (
                         <div className="w-8 h-8 bg-red-100 rounded flex items-center justify-center">

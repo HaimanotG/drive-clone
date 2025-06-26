@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { insertFileSchema } from "@/shared/schema";
 import { storage } from "@/lib/storage/storage";
-
+import { cloudinary, CloudinaryUploadApiResponse } from "@/lib/cloudinary";
 import getServerSession from "@/lib/get-server-session";
 
 // POST /api/files - Upload files
@@ -29,19 +29,31 @@ export async function POST(request: NextRequest) {
     const createdFiles = [];
 
     for (const file of files) {
-      // Save file to disk (you'll need to implement file saving logic)
-      // const buffer = await file.arrayBuffer();
-      const filePath = `uploads/${Date.now()}-${file.name}`;
+      const buffer = await file.arrayBuffer();
 
-      // Save buffer to file system or cloud storage
-      // await fs.writeFile(filePath, Buffer.from(buffer));
+      // Upload to Cloudinary
+      const uploadResult = (await new Promise((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            {
+              resource_type: "auto", // Automatically detect file type
+              folder: `drive-clone/${session.user.id}`, // Organize by user
+              public_id: `${Date.now()}-${file.name.replace(/\.[^/.]+$/, "")}`, // Remove extension, Cloudinary will add it
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else if (result) resolve(result);
+            }
+          )
+          .end(Buffer.from(buffer));
+      })) as CloudinaryUploadApiResponse;
 
       const fileData = insertFileSchema.parse({
         name: file.name,
         originalName: file.name,
         mimeType: file.type,
         size: file.size,
-        path: filePath,
+        path: uploadResult.secure_url, // Store Cloudinary URL instead of local path
         folderId,
         userId: session.user.id,
       });
