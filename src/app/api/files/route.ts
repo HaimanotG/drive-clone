@@ -26,6 +26,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (files.some((file) => file.size > 100 * 1024 * 1024)) {
+      return NextResponse.json(
+        { message: "File size exceeds 100MB limit" },
+        { status: 400 }
+      );
+    }
+
     const createdFiles = [];
 
     for (const file of files) {
@@ -84,8 +91,26 @@ export async function GET(request: NextRequest) {
     const folderId = searchParams.get("folderId")
       ? parseInt(searchParams.get("folderId")!)
       : null;
+    const view = searchParams.get("view") || "My Drive";
 
-    const files = await storage.getFilesByFolder(session.user.id, folderId);
+    let files;
+
+    switch (view) {
+      case "Recent":
+        files = await storage.getRecentFiles(session.user.id);
+        break;
+      case "Starred":
+        files = await storage.getStarredFiles(session.user.id);
+        break;
+      case "Trash":
+        files = await storage.getTrashedFiles(session.user.id);
+        break;
+      case "My Drive":
+      default:
+        files = await storage.getFilesByFolder(session.user.id, folderId);
+        break;
+    }
+
     return NextResponse.json(files);
   } catch (error) {
     console.error("Error fetching files:", error);

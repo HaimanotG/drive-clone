@@ -37,6 +37,19 @@ const useHome = () => {
 
   const { data: files = [], isLoading: filesLoading } = useQuery<File[]>({
     queryKey: ["/api/files", currentFolderId, currentView],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (currentView === "My Drive" && currentFolderId) {
+        params.append("folderId", currentFolderId.toString());
+      }
+      params.append("view", currentView);
+      
+      const response = await fetch(`/api/files?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch files');
+      }
+      return response.json();
+    },
     enabled: true,
     retry: false,
   });
