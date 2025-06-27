@@ -38,12 +38,45 @@ export default function ContextMenu({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
-  const handleShare = () => {
+  const handleShare = async () => {
     // TODO: Implement sharing functionality
     toast({
       title: "Coming Soon",
       description: "Sharing functionality will be available soon",
     });
+
+    // try {
+    //   // Generate shareable link based on item type and ID
+    //   const baseUrl = window.location.origin;
+    //   const shareUrl = type === "file"
+    //     ? `${baseUrl}/shared/file/${item.id}`
+    //     : `${baseUrl}/shared/folder/${item.id}`;
+
+    //   // Copy to clipboard
+    //   await navigator.clipboard.writeText(shareUrl);
+
+    //   toast({
+    //     title: "Link copied!",
+    //     description: `Shareable link for "${item.name}" has been copied to your clipboard.`,
+    //   });
+    // } catch (error) {
+    //   const textArea = document.createElement("textarea");
+    //   const baseUrl = window.location.origin;
+    //   const shareUrl = type === "file"
+    //     ? `${baseUrl}/shared/file/${item.id}`
+    //     : `${baseUrl}/shared/folder/${item.id}`;
+
+    //   textArea.value = shareUrl;
+    //   document.body.appendChild(textArea);
+    //   textArea.select();
+    //   document.execCommand("copy");
+    //   document.body.removeChild(textArea);
+
+    //   toast({
+    //     title: "Link copied!",
+    //     description: `Shareable link for "${item.name}" has been copied to your clipboard.`,
+    //   });
+    // }
     onClose();
   };
 

@@ -1,7 +1,7 @@
 import { UserStorage } from "./user-storage";
 import { FolderStorage } from "./folder-storage";
 import { FileStorage } from "./file-storage";
-import { IStorage } from "./types";
+import { IStorage, PaginationOptions } from "./types";
 import type {
   User,
   UpsertUser,
@@ -60,9 +60,10 @@ export class DatabaseStorage implements IStorage {
 
   async getFilesByFolder(
     userId: string,
-    folderId: number | null
+    folderId: number | null,
+    options?: PaginationOptions
   ): Promise<File[]> {
-    return this.fileStorage.getFilesByFolder(userId, folderId);
+    return this.fileStorage.getFilesByFolder(userId, folderId, options);
   }
 
   async getFileById(id: number, userId: string): Promise<File | undefined> {
@@ -81,24 +82,68 @@ export class DatabaseStorage implements IStorage {
     return this.fileStorage.deleteFile(id, userId);
   }
 
-  async getRecentFiles(userId: string): Promise<File[]> {
-    return this.fileStorage.getRecentFiles(userId);
+  async getRecentFiles(
+    userId: string,
+    options?: PaginationOptions
+  ): Promise<File[]> {
+    return this.fileStorage.getRecentFiles(userId, options);
   }
 
-  async getStarredFiles(userId: string): Promise<File[]> {
-    return this.fileStorage.getStarredFiles(userId);
+  async getStarredFiles(
+    userId: string,
+    options?: PaginationOptions
+  ): Promise<File[]> {
+    return this.fileStorage.getStarredFiles(userId, options);
   }
 
-  async getTrashedFiles(userId: string): Promise<File[]> {
-    return this.fileStorage.getTrashedFiles(userId);
+  async getTrashedFiles(
+    userId: string,
+    options?: PaginationOptions
+  ): Promise<File[]> {
+    return this.fileStorage.getTrashedFiles(userId, options);
   }
 
-  async searchFiles(userId: string, query: string): Promise<File[]> {
-    return this.fileStorage.searchFiles(userId, query);
+  async searchFiles(
+    userId: string,
+    query: string,
+    options?: PaginationOptions
+  ): Promise<File[]> {
+    return this.fileStorage.searchFiles(userId, query, options);
   }
 
   async getUserStorageUsed(userId: string): Promise<number> {
     return this.fileStorage.getUserStorageUsed(userId);
+  }
+
+  async getFilesCount(
+    userId: string,
+    view: string,
+    folderId: number
+  ): Promise<number> {
+    return this.fileStorage.getFilesCount(userId, view, folderId);
+  }
+
+  async getFilesByFolderCount(
+    userId: string,
+    folderId: number | null
+  ): Promise<number> {
+    return this.fileStorage.getFilesByFolderCount(userId, folderId);
+  }
+
+  async getRecentFilesCount(userId: string): Promise<number> {
+    return this.fileStorage.getRecentFilesCount(userId);
+  }
+
+  async getStarredFilesCount(userId: string): Promise<number> {
+    return this.fileStorage.getStarredFilesCount(userId);
+  }
+
+  async getTrashedFilesCount(userId: string): Promise<number> {
+    return this.fileStorage.getTrashedFilesCount(userId);
+  }
+
+  async getSearchFilesCount(userId: string, query: string): Promise<number> {
+    return this.fileStorage.getSearchFilesCount(userId, query);
   }
 }
 

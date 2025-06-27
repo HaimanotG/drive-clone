@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import fs from "fs";
-import path from "path";
 import getServerSession from "@/lib/get-server-session";
 import { storage } from "@/lib/storage/storage";
+import { cloudinary } from "@/lib/cloudinary";
 
 export async function GET(
   request: NextRequest,
@@ -19,26 +18,30 @@ export async function GET(
     const file = await storage.getFileById(fileId, session.user.id);
 
     if (!file) {
-      return NextResponse.json({ message: "File not found" }, { status: 404 });
-    }
-
-    const filePath = path.resolve(file.path);
-    if (!fs.existsSync(filePath)) {
       return NextResponse.json(
-        { message: "File not found on disk" },
+        { error: "File not found", code: "FILE_NOT_FOUND" },
         { status: 404 }
       );
     }
 
-    const fileBuffer = fs.readFileSync(filePath);
+    if (file.isTrashed) {
+      return NextResponse.json(
+        { error: "File is in trash", code: "FILE_TRASHED" },
+        { status: 410 }
+      );
+    }
 
-    return new NextResponse(fileBuffer, {
-      headers: {
-        "Content-Type": file.mimeType,
-        "Content-Disposition": "inline",
-        "Content-Length": file.size.toString(),
-      },
-    });
+    // Generate signed URL for secure download
+    const signedUrl = cloudinary.utils.private_download_url(
+      file.path.split("/").pop()?.split(".")[0] || "",
+      file.mimeType.startsWith("image/") ? "image" : "raw",
+      {
+        expires_at: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiry
+        attachment: true,
+      }
+    );
+
+    return NextResponse.redirect(signedUrl, 302);
   } catch (error) {
     console.error("Error previewing file:", error);
     return NextResponse.json(

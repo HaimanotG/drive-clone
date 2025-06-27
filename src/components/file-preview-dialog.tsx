@@ -88,6 +88,7 @@ export default function FilePreviewDialog({
           <Image
             src={previewUrl}
             alt={file.name}
+            fill
             className="max-w-full max-h-96 object-contain rounded-lg shadow-sm"
             onError={() => setError("Failed to load image")}
           />

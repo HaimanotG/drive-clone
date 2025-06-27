@@ -6,6 +6,7 @@ import {
   type File,
   type InsertFile,
 } from "../../shared/schema";
+import { PaginationOptions } from "./types";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -27,7 +28,11 @@ export interface IStorage {
 
   // File operations
   createFile(file: InsertFile): Promise<File>;
-  getFilesByFolder(userId: string, folderId: number | null): Promise<File[]>;
+  getFilesByFolder(
+    userId: string,
+    folderId: number | null,
+    options?: PaginationOptions
+  ): Promise<File[]>;
   getFileById(id: number, userId: string): Promise<File | undefined>;
   updateFile(
     id: number,
@@ -35,9 +40,14 @@ export interface IStorage {
     data: Partial<InsertFile>
   ): Promise<File | undefined>;
   deleteFile(id: number, userId: string): Promise<boolean>;
-  getRecentFiles(userId: string): Promise<File[]>;
-  getStarredFiles(userId: string): Promise<File[]>;
-  getTrashedFiles(userId: string): Promise<File[]>;
-  searchFiles(userId: string, query: string): Promise<File[]>;
+  getRecentFiles(userId: string, options?: PaginationOptions): Promise<File[]>;
+  getStarredFiles(userId: string, options?: PaginationOptions): Promise<File[]>;
+  getTrashedFiles(userId: string, options?: PaginationOptions): Promise<File[]>;
+  searchFiles(userId: string, query: string, options?: PaginationOptions): Promise<File[]>;
   getUserStorageUsed(userId: string): Promise<number>;
+  
+  // Count methods
+  getFilesCount(userId: string, view: string, folderId?: number | null): Promise<number>;
+  // Add this method to the IFileStorage interface
+  getSearchFilesCount(userId: string, query: string): Promise<number>;
 }

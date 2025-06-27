@@ -1,7 +1,8 @@
-import { files, type File, type InsertFile } from "../../shared/schema";
 import { db } from "./db";
-import { eq, and, isNull, desc } from "drizzle-orm";
-import { IFileStorage } from "./types";
+import { files } from "@/shared/schema";
+import { and, eq, count, or, ilike, desc, asc, isNull } from "drizzle-orm";
+import { File, InsertFile } from "@/shared/schema";
+import { IFileStorage, PaginationOptions } from "./types";
 
 export class FileStorage implements IFileStorage {
   async createFile(file: InsertFile): Promise<File> {
@@ -11,8 +12,30 @@ export class FileStorage implements IFileStorage {
 
   async getFilesByFolder(
     userId: string,
-    folderId: number | null
+    folderId: number | null,
+    options?: PaginationOptions
   ): Promise<File[]> {
+    const {
+      page = 1,
+      limit = 50,
+      sortBy = "name",
+      sortOrder = "asc",
+    } = options || {};
+    const offset = (page - 1) * limit;
+
+    const orderColumn =
+      sortBy === "name"
+        ? files.name
+        : sortBy === "size"
+        ? files.size
+        : sortBy === "createdAt"
+        ? files.createdAt
+        : sortBy === "updatedAt"
+        ? files.updatedAt
+        : files.name;
+
+    const orderFn = sortOrder === "desc" ? desc : asc;
+
     return await db
       .select()
       .from(files)
@@ -23,7 +46,9 @@ export class FileStorage implements IFileStorage {
           folderId ? eq(files.folderId, folderId) : isNull(files.folderId)
         )
       )
-      .orderBy(files.name);
+      .orderBy(orderFn(orderColumn))
+      .limit(limit)
+      .offset(offset);
   }
 
   async getFileById(id: number, userId: string): Promise<File | undefined> {
@@ -54,16 +79,68 @@ export class FileStorage implements IFileStorage {
     return (result?.rowCount ?? 0) > 0;
   }
 
-  async getRecentFiles(userId: string): Promise<File[]> {
+  async getRecentFiles(
+    userId: string,
+    options?: PaginationOptions
+  ): Promise<File[]> {
+    const {
+      page = 1,
+      limit = 20,
+      sortBy = "updatedAt",
+      sortOrder = "desc",
+    } = options || {};
+    const offset = (page - 1) * limit;
+
+    const orderColumn =
+      sortBy === "name"
+        ? files.name
+        : sortBy === "size"
+        ? files.size
+        : sortBy === "createdAt"
+        ? files.createdAt
+        : files.updatedAt;
+
+    const orderFn = sortOrder === "desc" ? desc : asc;
+
     return await db
       .select()
       .from(files)
       .where(and(eq(files.userId, userId), eq(files.isTrashed, false)))
-      .orderBy(desc(files.updatedAt))
-      .limit(20);
+      .orderBy(orderFn(orderColumn))
+      .limit(limit)
+      .offset(offset);
   }
 
-  async getStarredFiles(userId: string): Promise<File[]> {
+  async getStarredFiles(
+    userId: string,
+    options?: PaginationOptions
+  ): Promise<File[]> {
+    const {
+      page = 1,
+      limit = 50,
+      sortBy = "name",
+      sortOrder = "asc",
+    } = options || {};
+    const offset = (page - 1) * limit;
+
+    // const orderColumn = {
+    //   name: files.name,
+    //   size: files.size,
+    //   createdAt: files.createdAt,
+    //   updatedAt: files.updatedAt,
+    // }[sortBy];
+
+    const orderColumn =
+      sortBy === "name"
+        ? files.name
+        : sortBy === "size"
+        ? files.size
+        : sortBy === "createdAt"
+        ? files.createdAt
+        : files.updatedAt;
+
+    const orderFn = sortOrder === "desc" ? desc : asc;
+
     return await db
       .select()
       .from(files)
@@ -74,24 +151,84 @@ export class FileStorage implements IFileStorage {
           eq(files.isTrashed, false)
         )
       )
-      .orderBy(files.name);
+      .orderBy(orderFn(orderColumn))
+      .limit(limit)
+      .offset(offset);
   }
 
-  async getTrashedFiles(userId: string): Promise<File[]> {
+  async getTrashedFiles(
+    userId: string,
+    options?: PaginationOptions
+  ): Promise<File[]> {
+    const {
+      page = 1,
+      limit = 50,
+      sortBy = "updatedAt",
+      sortOrder = "desc",
+    } = options || {};
+    const offset = (page - 1) * limit;
+
+    const orderColumn =
+      sortBy === "name"
+        ? files.name
+        : sortBy === "size"
+        ? files.size
+        : sortBy === "createdAt"
+        ? files.createdAt
+        : files.updatedAt;
+
+    const orderFn = sortOrder === "desc" ? desc : asc;
+
     return await db
       .select()
       .from(files)
       .where(and(eq(files.userId, userId), eq(files.isTrashed, true)))
-      .orderBy(desc(files.updatedAt));
+      .orderBy(orderFn(orderColumn))
+      .limit(limit)
+      .offset(offset);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async searchFiles(userId: string, _query: string): Promise<File[]> {
+  async searchFiles(
+    userId: string,
+    query: string,
+    options?: PaginationOptions
+  ): Promise<File[]> {
+    const {
+      page = 1,
+      limit = 50,
+      sortBy = "name",
+      sortOrder = "asc",
+    } = options || {};
+    const offset = (page - 1) * limit;
+
+    // Search in file names and content (if applicable)
+    const searchCondition = or(
+      ilike(files.name, `%${query}%`),
+      ilike(files.mimeType, `%${query}%`)
+    );
+
+    const orderByColumn =
+      sortBy === "name"
+        ? files.name
+        : sortBy === "size"
+        ? files.size
+        : sortBy === "createdAt"
+        ? files.createdAt
+        : files.updatedAt;
+
     return await db
       .select()
       .from(files)
-      .where(and(eq(files.userId, userId), eq(files.isTrashed, false)))
-      .orderBy(files.name);
+      .where(
+        and(
+          eq(files.userId, userId),
+          eq(files.isTrashed, false),
+          searchCondition
+        )
+      )
+      .orderBy(sortOrder === "desc" ? desc(orderByColumn) : asc(orderByColumn))
+      .limit(limit)
+      .offset(offset);
   }
 
   async getUserStorageUsed(userId: string): Promise<number> {
@@ -101,5 +238,94 @@ export class FileStorage implements IFileStorage {
       .where(and(eq(files.userId, userId), eq(files.isTrashed, false)));
 
     return result.reduce((total, file) => total + file.size, 0);
+  }
+
+  // Count methods for pagination
+  async getFilesCount(
+    userId: string,
+    view: string,
+    folderId?: number | null
+  ): Promise<number> {
+    switch (view) {
+      case "Recent":
+        return this.getRecentFilesCount(userId);
+      case "Starred":
+        return this.getStarredFilesCount(userId);
+      case "Trash":
+        return this.getTrashedFilesCount(userId);
+      case "My Drive":
+      default:
+        return this.getFilesByFolderCount(userId, folderId || null);
+    }
+  }
+
+  async getFilesByFolderCount(
+    userId: string,
+    folderId: number | null
+  ): Promise<number> {
+    const [result] = await db
+      .select({ count: count() })
+      .from(files)
+      .where(
+        and(
+          eq(files.userId, userId),
+          eq(files.isTrashed, false),
+          folderId ? eq(files.folderId, folderId) : isNull(files.folderId)
+        )
+      );
+    return result.count;
+  }
+
+  async getRecentFilesCount(userId: string): Promise<number> {
+    const [result] = await db
+      .select({ count: count() })
+      .from(files)
+      .where(and(eq(files.userId, userId), eq(files.isTrashed, false)));
+    return result.count;
+  }
+
+  async getStarredFilesCount(userId: string): Promise<number> {
+    const [result] = await db
+      .select({ count: count() })
+      .from(files)
+      .where(
+        and(
+          eq(files.userId, userId),
+          eq(files.isStarred, true),
+          eq(files.isTrashed, false)
+        )
+      );
+    return result.count;
+  }
+
+  async getTrashedFilesCount(userId: string): Promise<number> {
+    const [result] = await db
+      .select({ count: count() })
+      .from(files)
+      .where(and(eq(files.userId, userId), eq(files.isTrashed, true)));
+    return result.count;
+  }
+
+  async getSearchFilesCount(
+    userId: string,
+    query: string
+  ): Promise<number> {
+    const searchCondition = or(
+      ilike(files.name, `%${query}%`),
+      ilike(files.mimeType, `%${query}%`)
+    );
+  
+    const [result] = await db
+      .select({ count: count() })
+      .from(files)
+      .where(
+        and(
+          eq(files.userId, userId),
+          eq(files.isTrashed, false),
+          searchCondition
+        )
+      );
+    
+    return result.count;
   }
 }

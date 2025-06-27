@@ -22,11 +22,15 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-16">
-          <div className="flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mx-auto mb-6">
-            <CloudUpload className="w-10 h-10 text-white" />
+        <header className="text-center mb-16">
+          <div
+            className="flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mx-auto mb-6"
+            role="img"
+            aria-label="Cloud upload icon"
+          >
+            <CloudUpload className="w-10 h-10 text-white" aria-hidden="true" />
           </div>
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
             Welcome to Drive Clone
@@ -36,12 +40,17 @@ export default function Landing() {
             your documents from anywhere, anytime.
           </p>
 
-          <div className="space-y-4">
+          <section className="space-y-4">
             <Button
               size="lg"
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg relative"
               onClick={signInWithGoogle}
               disabled={isLoading}
+              aria-label={
+                isLoading
+                  ? "Signing in to Drive Clone"
+                  : "Sign in to Drive Clone with Google"
+              }
             >
               {isLoading ? (
                 <>
@@ -72,59 +81,89 @@ export default function Landing() {
             <p className="text-sm text-gray-500">
               Sign in with your account to access your files
             </p>
-          </div>
-        </div>
+          </section>
+        </header>
 
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <CloudUpload className="w-6 h-6 text-blue-600" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Easy Upload</h3>
-              <p className="text-gray-600">
-                Drag and drop files or upload from your device with just a few
-                clicks.
-              </p>
-            </CardContent>
-          </Card>
+        <section
+          className="grid md:grid-cols-3 gap-8 mb-16"
+          aria-label="Features"
+        >
+          <article className="text-center">
+            <Card>
+              <CardContent className="pt-6">
+                <div
+                  className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4"
+                  role="img"
+                  aria-label="Upload feature"
+                >
+                  <CloudUpload
+                    className="w-6 h-6 text-blue-600"
+                    aria-hidden="true"
+                  />
+                </div>
+                <h2 className="text-lg font-semibold mb-2">Easy Upload</h2>
+                <p className="text-gray-600">
+                  Drag and drop files or upload from your device with just a few
+                  clicks.
+                </p>
+              </CardContent>
+            </Card>
+          </article>
 
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Folder className="w-6 h-6 text-green-600" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Organize</h3>
-              <p className="text-gray-600">
-                Create folders and organize your files exactly how you want
-                them.
-              </p>
-            </CardContent>
-          </Card>
+          <article className="text-center">
+            <Card>
+              <CardContent className="pt-6">
+                <div
+                  className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4"
+                  role="img"
+                  aria-label="Organization feature"
+                >
+                  <Folder
+                    className="w-6 h-6 text-green-600"
+                    aria-hidden="true"
+                  />
+                </div>
+                <h2 className="text-lg font-semibold mb-2">Organize</h2>
+                <p className="text-gray-600">
+                  Create folders and organize your files exactly how you want
+                  them.
+                </p>
+              </CardContent>
+            </Card>
+          </article>
 
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-6 h-6 text-purple-600" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Secure</h3>
-              <p className="text-gray-600">
-                Your files are protected with enterprise-grade security and
-                encryption.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+          <article className="text-center">
+            <Card>
+              <CardContent className="pt-6">
+                <div
+                  className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4"
+                  role="img"
+                  aria-label="Security feature"
+                >
+                  <Shield
+                    className="w-6 h-6 text-purple-600"
+                    aria-hidden="true"
+                  />
+                </div>
+                <h2 className="text-lg font-semibold mb-2">Secure</h2>
+                <p className="text-gray-600">
+                  Your files are protected with enterprise-grade security and
+                  encryption.
+                </p>
+              </CardContent>
+            </Card>
+          </article>
+        </section>
 
-        <div className="text-center">
+        <footer className="text-center">
           <div className="inline-flex items-center space-x-2 bg-blue-50 rounded-full px-6 py-3">
-            <Zap className="w-5 h-5 text-blue-600" />
+            <Zap className="w-5 h-5 text-blue-600" aria-hidden="true" />
             <span className="text-blue-700 font-medium">
               10GB of free storage included
             </span>
           </div>
-        </div>
+        </footer>
       </div>
-    </div>
+    </main>
   );
 }
